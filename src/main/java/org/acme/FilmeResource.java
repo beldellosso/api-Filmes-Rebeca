@@ -1,10 +1,13 @@
-package org.acme;
+package org.acme.resource;
 
+import org.acme.model.Filme;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-
+import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import java.util.List;
+import jakarta.validation.Valid;
 
 @Path("/filmes")
 @Produces(MediaType.APPLICATION_JSON)
@@ -18,46 +21,68 @@ public class FilmeResource {
 
     @GET
     @Path("/{id}")
-    public Filme buscarPorId(@PathParam("id") Long id) {
-        return Filme.findById(id);
+    public Response buscarPorId(@PathParam("id") Long id) {
+        Filme filme = Filme.findById(id);
+        if (filme != null) {
+            return Response.ok(filme).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 
     @GET
     @Path("/buscar")
-    public List<Filme> buscar(@QueryParam("titulo") String titulo,
-                              @QueryParam("genero") String genero,
-                              @QueryParam("ano") Integer ano) {
-        return Filme.list("titulo like ?1 or genero = ?2 or anoLancamento = ?3",
-                "%" + titulo + "%", genero, ano);
+    public List<Filme> buscar(
+            @QueryParam("titulo") String titulo,
+            @QueryParam("genero") Filme.Genero genero,
+            @QueryParam("ano") Integer ano) {
+
+        if (titulo != null) {
+            return Filme.list("titulo like ?1", "%" + titulo + "%");
+        }
+        if (genero != null) {
+            return Filme.list("genero", genero);
+        }
+        if (ano != null) {
+            return Filme.list("anoLancamento", ano);
+        }
+
+        return Filme.listAll();
     }
 
     @POST
     @Transactional
-    public Filme adicionar(Filme filme) {
+    public Response adicionar(@Valid Filme filme) {
         filme.persist();
-        return filme;
+        return Response.created(URI.create("/filmes/" + filme.id)).entity(filme).build();
     }
 
     @PUT
     @Path("/{id}")
     @Transactional
-    public Filme atualizar(@PathParam("id") Long id, Filme dados) {
+    public Response atualizar(@PathParam("id") Long id, @Valid Filme dados) {
         Filme filme = Filme.findById(id);
-        if (filme == null) {
-            throw new NotFoundException("Filme não encontrado");
+        if (filme != null) {
+            filme.titulo = dados.titulo;
+            filme.diretor = dados.diretor;
+            filme.atores = dados.atores;
+            filme.genero = dados.genero;
+            filme.anoLancamento = dados.anoLancamento;
+            filme.sinopse = dados.sinopse;
+            return Response.ok(filme).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        filme.titulo = dados.titulo;
-        filme.diretor = dados.diretor;
-        filme.genero = dados.genero;
-        filme.anoLancamento = dados.anoLancamento;
-        filme.disponivel = dados.disponivel;
-        return filme;
     }
 
     @DELETE
     @Path("/{id}")
     @Transactional
-    public void deletar(@PathParam("id") Long id) {
-        Filme.deleteById(id);
+    public Response deletar(@PathParam("id") Long id) {
+        if (Filme.deleteById(id)) {
+            return Response.status(Response.Status.NO_CONTENT).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 }
