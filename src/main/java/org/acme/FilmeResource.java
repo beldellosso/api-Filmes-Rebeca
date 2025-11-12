@@ -1,6 +1,6 @@
-package org.acme.resource;
+package org.acme;
 
-import org.acme.model.Filme;
+import org.acme.Filme;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;

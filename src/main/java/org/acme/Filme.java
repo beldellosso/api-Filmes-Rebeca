@@ -1,9 +1,10 @@
-package com.rebeca.filmes.api.model;
+package org.acme;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
@@ -31,11 +32,16 @@ public class Filme extends PanacheEntity {
 
     // Relacionamento Muitos para Um: muitos filmes podem ter o mesmo diretor
     @ManyToOne
+    @JoinColumn(name = "diretor_id")
     public Diretor diretor;
 
     // Relacionamento Muitos para Muitos: um filme pode ter muitos atores
-    @ManSyToMany
-    @JoinTable(name = "filme_ator") // Isso define a tabela de junção
+    @ManyToMany
+    @JoinTable(
+            name = "filme_ator",
+            joinColumns = @JoinColumn(name = "filme_id"),
+            inverseJoinColumns = @JoinColumn(name = "ator_id")
+    )
     public List<Ator> atores;
 
     @Enumerated(EnumType.STRING)
