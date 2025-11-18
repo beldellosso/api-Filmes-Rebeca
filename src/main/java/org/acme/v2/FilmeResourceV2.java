@@ -1,5 +1,7 @@
 package org.acme.v2;
 
+import org.acme.model.Filme;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
@@ -10,8 +12,14 @@ import java.util.List;
 public class FilmeResourceV2 {
 
     @GET
-    public List<String> listar() {
-        // Apenas exemplo de formato diferente
-        return List.of("Versão 2 - Listagem simplificada de filmes");
+    public List<Filme> listar() {
+        return Filme.listAll();
+    }
+
+    @POST
+    @Transactional
+    public Filme criar(Filme filme) {
+        filme.persist();
+        return filme;
     }
 }

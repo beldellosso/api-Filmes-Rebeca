@@ -1,18 +1,8 @@
 package org.acme;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.util.List;
 
 @Entity
@@ -23,19 +13,17 @@ public class Filme extends PanacheEntity {
     public String titulo;
 
     @NotNull(message = "O ano de lançamento é obrigatório.")
-    @Min(value = 1888, message = "O ano de lançamento deve ser maior que 1888.")
-    @Max(value = 2100, message = "O ano de lançamento não pode ser maior que 2100.")
+    @Min(1888)
+    @Max(2100)
     public Integer anoLancamento;
 
-    @NotBlank(message = "A sinopse é obrigatória.")
+    @NotBlank
     public String sinopse;
 
-    // Relacionamento Muitos para Um: muitos filmes podem ter o mesmo diretor
     @ManyToOne
     @JoinColumn(name = "diretor_id")
     public Diretor diretor;
 
-    // Relacionamento Muitos para Muitos: um filme pode ter muitos atores
     @ManyToMany
     @JoinTable(
             name = "filme_ator",

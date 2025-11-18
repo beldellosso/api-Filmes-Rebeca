@@ -1,4 +1,4 @@
-package org.acme;
+package org.acme.resource;
 
 
 import jakarta.ws.rs.Path;
@@ -8,8 +8,8 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.acme.MyEntity;
 
-import javax.xml.transform.Result;
 import java.util.List;
 
 @Path("/hello")
