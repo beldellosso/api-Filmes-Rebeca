@@ -7,7 +7,7 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
 
 @Provider
-public class GlobalExceptionMapper implements ExceptionMapper<Exception> {
+public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception e) {
