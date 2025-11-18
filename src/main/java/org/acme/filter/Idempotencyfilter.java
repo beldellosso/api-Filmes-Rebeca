@@ -11,7 +11,7 @@ import jakarta.annotation.Priority; // Adicionado para prioridade
 @Provider
 @Idempotent
 @Priority(50) // Prioridade deve ser definida para controlar a ordem
-public class IdempotencyFilter implements ContainerRequestFilter {
+public class Idempotencyfilter implements ContainerRequestFilter {
 
     @Inject
     IdempotencyService idempotencyService;

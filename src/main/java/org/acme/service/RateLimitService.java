@@ -6,7 +6,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Service to manage Rate Limiting (limite de taxa de requisições) em memória.
@@ -16,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * para sincronizar o estado em múltiplas instâncias da API.
  */
 @ApplicationScoped
-public class RateLimitingService {
+public class RateLimitService { // Nome da classe corrigido
 
     // Cache para armazenar o estado de limite de taxa por API Key (ou identificador de cliente)
     private final Map<String, RequestState> rateLimitCache = new ConcurrentHashMap<>();
@@ -26,7 +25,7 @@ public class RateLimitingService {
     @ConfigProperty(name = "api.ratelimit.limit", defaultValue = "20")
     int requestLimit;
 
-    // A janela de tempo é configurada em segundos (como no application.properties), mas aqui convertemos para Instant/segundos.
+    // A janela de tempo é configurada em segundos.
     @Inject
     @ConfigProperty(name = "api.ratelimit.window.seconds", defaultValue = "60")
     long windowSeconds;
@@ -34,11 +33,11 @@ public class RateLimitingService {
 
     /**
      * Tenta processar uma requisição para a chave de API fornecida.
-     * @param apiKey A chave de API do usuário (ou outro identificador de cliente).
+     * @param clientIdentifier O identificador do cliente (e.g., chave de API ou IP).
      * @return true se a requisição for permitida, false se o limite for excedido.
      */
-    public boolean allowRequest(String apiKey) {
-        RequestState state = rateLimitCache.computeIfAbsent(apiKey, k -> new RequestState());
+    public boolean allowRequest(String clientIdentifier) {
+        RequestState state = rateLimitCache.computeIfAbsent(clientIdentifier, k -> new RequestState());
         Instant now = Instant.now();
 
         // Define o início da janela de tempo atual
@@ -61,12 +60,20 @@ public class RateLimitingService {
     }
 
     /**
+     * Retorna o número total de requisições permitidas na janela.
+     * @return O limite de requisições.
+     */
+    public int getLimit() {
+        return requestLimit;
+    }
+
+    /**
      * Retorna o número de requisições restantes na janela atual.
-     * @param apiKey A chave de API do usuário.
+     * @param clientIdentifier O identificador do cliente.
      * @return O número de requisições restantes.
      */
-    public int remainingRequests(String apiKey) {
-        RequestState state = rateLimitCache.get(apiKey);
+    public int remainingRequests(String clientIdentifier) {
+        RequestState state = rateLimitCache.get(clientIdentifier);
         if (state == null) {
             return requestLimit; // Se não houver estado, assume o limite total
         }
@@ -95,3 +102,4 @@ public class RateLimitingService {
             this.lastRequestTime = Instant.EPOCH;
         }
     }
+}

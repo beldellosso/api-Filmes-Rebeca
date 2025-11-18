@@ -5,7 +5,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.validation.Valid;
-import org.acme.model.Filme; // Importa o modelo de dados correto (assumindo org.acme.model)
+import org.acme.Filme; // Importa o modelo de dados correto (assumindo org.acme.model)
 import org.acme.filter.ApiKeyProtected;
 import org.acme.filter.Idempotent;
 import org.acme.filter.RateLimited;

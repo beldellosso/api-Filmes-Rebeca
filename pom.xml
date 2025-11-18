@@ -15,6 +15,8 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <maven.compiler.release>17</maven.compiler.release>
+        <!-- ADICIONADO: Define a versão do Lombok como propriedade -->
+        <lombok.version>1.18.30</lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -76,6 +78,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <!-- CORRIGIDO: Adiciona a versão do Lombok usando a propriedade definida acima -->
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 

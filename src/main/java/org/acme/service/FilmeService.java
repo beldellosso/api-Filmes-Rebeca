@@ -2,8 +2,8 @@ package org.acme.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import org.acme.model.Filme; // Import corrigido para o pacote correto
-import org.acme.model.Filme.Genero;
+import org.acme.Filme; // Import corrigido para o pacote correto
+import org.acme.Filme.Genero;
 import java.util.List;
 
 /**

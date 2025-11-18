@@ -9,7 +9,7 @@ import org.acme.service.ApiKeyService;
 
 @Provider
 @ApiKeyProtected
-public class ApiKeyFilter implements ContainerRequestFilter {
+public class ApiKeyfilter implements ContainerRequestFilter {
 
     @Inject
     ApiKeyService apiKeyService;

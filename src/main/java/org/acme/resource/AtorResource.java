@@ -2,7 +2,7 @@ package org.acme.resource;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import org.acme.model.Ator;
+import org.acme.Ator;
 
 import java.util.List;
 
