@@ -37,36 +37,37 @@
 
     <dependencies>
 
-        <!-- REST + JSON -->
+        <!-- REST + JSON (CORRETO para Quarkus 3) -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-jackson</artifactId>
+            <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
         </dependency>
 
-        <!-- Validação Jakarta (Necessário!) -->
+        <!-- Validação Jakarta (obrigatório para @NotBlank, @Valid, etc) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-validator</artifactId>
         </dependency>
 
-        <!-- DB H2 + Hibernate Panache -->
+        <!-- Banco H2 -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-h2</artifactId>
         </dependency>
 
+        <!-- Hibernate ORM + Panache -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm-panache</artifactId>
         </dependency>
 
-        <!-- Arc DI -->
+        <!-- CDI / Injeção de Dependência -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
         </dependency>
 
-        <!-- OpenAPI -->
+        <!-- OpenAPI + Swagger -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-openapi</artifactId>
