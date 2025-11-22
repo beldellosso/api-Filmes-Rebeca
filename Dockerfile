@@ -1,28 +1,30 @@
-# 1. ESTÁGIO DE BUILD (Compilação)
-# Usa uma imagem Maven/JDK para construir o projeto
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# 1. ESTÁGIO DE BUILD (Multi-Stage Build)
+# Usa a imagem JDK 17 para compilar o código
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
 # Copia o pom.xml e o código-fonte
 COPY pom.xml .
 COPY src /app/src
 
-# Constrói o projeto Quarkus e gera o JAR executável
-# Utilizamos o -DskipTests para pular testes e acelerar o deploy
-RUN mvn clean package -DskipTests
+# Constrói o projeto Quarkus
+# Usamos o comando "mvn package -DskipTests"
+# -DskipTests é crucial para builds rápidos
+RUN chmod +x ./mvnw
+RUN ./mvnw package -DskipTests
 
 # 2. ESTÁGIO DE EXECUÇÃO
-# Usa uma imagem JRE (Java Runtime Environment) menor e mais segura para produção
+# Usa uma imagem JRE (Java Runtime Environment) menor para rodar a aplicação
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /work/
 
-# Copia apenas o resultado da compilação (o JAR executável e as dependências)
+# Copia apenas o resultado da compilação do ESTÁGIO DE BUILD
 COPY --from=build /app/target/quarkus-app/lib /work/lib
 COPY --from=build /app/target/quarkus-app/*.jar /work/
-COPY --from=build /app/target/quarkus-app/app /work/app
+COPY --from=build /app/target/quarkus-app/app/ /work/app
 
-# Define o ponto de entrada (ENTRYPOINT) e o comando (CMD) para rodar o JAR
-# O -Dquarkus.http.host=0.0.0.0 garante que o Quarkus escute em todas as interfaces,
-# o que é necessário em ambientes de container como o Render.
+# Expõe a porta 8080 (padrão do Quarkus)
+EXPOSE 8080
+
+# Comando para iniciar o Quarkus (corrigido para usar o nome de arquivo correto)
 ENTRYPOINT [ "java", "-jar", "quarkus-run.jar" ]
-CMD [ "-Dquarkus.http.host=0.0.0.0", "quarkus-run.jar" ]
