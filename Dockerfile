@@ -3,8 +3,10 @@
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
-# Copia o pom.xml e o código-fonte
+# Copia o pom.xml, os scripts de build do Maven, e o código-fonte
 COPY pom.xml .
+COPY mvnw .
+COPY mvnw.cmd .
 COPY src /app/src
 
 # Constrói o projeto Quarkus
