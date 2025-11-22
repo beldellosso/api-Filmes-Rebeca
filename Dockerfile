@@ -1,31 +1,41 @@
-# 1. ESTÁGIO DE BUILD
-# MUDANÇA CRUCIAL: Usando JDK 21 para compilar para o Java 21
-FROM eclipse-temurin:21-jdk AS build
+## Stage 1: Build da aplicação com Maven
+FROM maven:3.9.5-eclipse-temurin-17 AS build
+
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copia pom.xml primeiro para usar o cache de dependências
+# Copia os arquivos do Maven primeiro (para cache de dependências)
 COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
 
-# Copia os scripts e o arquivo de configuração do Maven Wrapper
-COPY mvnw mvnw.cmd .
-COPY .mvn/wrapper/maven-wrapper.properties .mvn/wrapper/
-
-# Copia o código-fonte restante
-COPY src /app/src
-
-# Constrói o projeto Quarkus
+# Faz o wrapper executável
 RUN chmod +x ./mvnw
-RUN ./mvnw package -DskipTests
 
-# 2. ESTÁGIO DE EXECUÇÃO
-# MUDANÇA CRUCIAL: Usando JRE 21 para garantir compatibilidade
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /work/
+# Baixa as dependências (camada cacheável)
+RUN ./mvnw dependency:go-offline -B
 
-# Copia a aplicação construída
-COPY --from=build /app/target/quarkus-app/lib /work/lib
-COPY --from=build /app/target/quarkus-app/*.jar /work/
-COPY --from=build /app/target/quarkus-app/app/ /work/app
+# Copia o código fonte
+COPY src ./src
 
+# Compila a aplicação
+RUN ./mvnw package -DskipTests -Dquarkus.package.jar.type=uber-jar
+
+## Stage 2: Imagem final de runtime
+FROM registry.access.redhat.com/ubi8/openjdk-17-runtime:1.18
+
+# Variáveis de ambiente
+ENV LANGUAGE='en_US:en'
+ENV JAVA_OPTS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+
+# Copia o uber-jar da stage de build
+COPY --from=build --chown=185 /app/target/*-runner.jar /deployments/quarkus-run.jar
+
+# Expõe a porta
 EXPOSE 8080
-ENTRYPOINT [ "java", "-jar", "quarkus-run.jar" ]
+
+# Define o usuário
+USER 185
+
+# Comando de execução
+ENTRYPOINT [ "java", "-Dquarkus.http.host=0.0.0.0", "-Djava.util.logging.manager=org.jboss.logmanager.LogManager", "-jar", "/deployments/quarkus-run.jar" ]
