@@ -15,8 +15,6 @@ COPY pom.xml .
 # Remove os caches de Jandex e Quarkus que estão corrompidos, forçando
 # o Maven a baixá-los e processá-los corretamente no passo seguinte.
 # ====================================================================
-RUN rm -rf /root/.m2/repository/io/quarkus \
-    && rm -rf /root/.m2/repository/org/jboss/jandex
 
 # Baixa as dependências. O || true garante que o build não falhe se o go-offline retornar erro (comum em caches vazios)
 RUN mvn dependency:go-offline -B || true

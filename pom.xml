@@ -51,7 +51,7 @@
         <!-- O ARC geralmente já puxa isso, mas é bom garantir. -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-config</artifactId>
+            <artifactId>Squarkus-smallrye-config</artifactId>
         </dependency>
 
         <!-- ESSENCIAL: Hibernate com Panache e Driver H2 para desenvolvimento/teste -->
