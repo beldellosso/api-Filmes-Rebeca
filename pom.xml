@@ -47,13 +47,6 @@
             <artifactId>quarkus-arc</artifactId>
         </dependency>
 
-        <!-- ESSENCIAL: MicroProfile Config para injeção de @ConfigProperty -->
-        <!-- O ARC geralmente já puxa isso, mas é bom garantir. -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>Squarkus-smallrye-config</artifactId>
-        </dependency>
-
         <!-- ESSENCIAL: Hibernate com Panache e Driver H2 para desenvolvimento/teste -->
         <dependency>
             <groupId>io.quarkus</groupId>
