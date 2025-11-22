@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: api-filmes-rebeca
+    env: docker
+    plan: free
+    region: oregon
+
+    dockerfilePath: ./Dockerfile
+    rootDir: .
+
+    envVars:
+      - key: PORT
+        value: "8080"
+
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:+UseContainerSupport -Xmx512m"
+
+    healthCheckPath: /q/health
