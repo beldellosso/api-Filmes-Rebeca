@@ -2,23 +2,21 @@
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
-# Copia pom.xml primeiro (para cache de dependências)
+# Copia pom.xml primeiro para usar o cache de dependências
 COPY pom.xml .
 
-# Copia o Maven Wrapper e seu arquivo de configuração
-# Usamos o wildcard (*) para garantir que o CONTEÚDO da pasta .mvn/wrapper
-# seja copiado, caso a plataforma tenha dificuldade com pastas ocultas.
-# O Render ou o Docker não precisa da pasta .mvn em si, mas sim do wrapper.
+# Copia os scripts do Maven Wrapper (mvnw e mvnw.cmd)
+# e o arquivo de configuração (maven-wrapper.properties)
+# O arquivo binário 'maven-wrapper.jar' NÃO é copiado.
 COPY mvnw mvnw.cmd .
-COPY .mvn/wrapper/maven-wrapper.properties .mvn/wrapper/maven-wrapper.jar /app/.mvn/wrapper/
+COPY .mvn/wrapper/maven-wrapper.properties .mvn/wrapper/
 
 # Copia o código-fonte restante
 COPY src /app/src
 
 # Constrói o projeto Quarkus
+# O comando ./mvnw agora fará o download do maven-wrapper.jar antes de rodar o pacote.
 RUN chmod +x ./mvnw
-# O erro "cannot open /app/.mvn/wrapper/maven-wrapper.properties" será resolvido
-# porque o arquivo agora está no local esperado (/app/.mvn/wrapper/)
 RUN ./mvnw package -DskipTests
 
 # 2. ESTÁGIO DE EXECUÇÃO
