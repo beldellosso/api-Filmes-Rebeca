@@ -12,9 +12,6 @@ COPY mvnw .
 # Faz o wrapper executável
 RUN chmod +x ./mvnw
 
-# Baixa as dependências (camada cacheável)
-RUN ./mvnw dependency:go-offline -B
-
 # Copia o código fonte
 COPY src ./src
 
