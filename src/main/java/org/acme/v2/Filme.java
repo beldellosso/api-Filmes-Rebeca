@@ -1,49 +1,31 @@
 package org.acme.v2;
 
+
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import org.acme.Ator;
-import org.acme.Diretor;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-import java.util.List;
-
+/**
+ * Entidade Filme. Contém a enumeração Genero, referenciada no FilmeResource.
+ */
 @Entity
 public class Filme extends PanacheEntity {
 
-    @NotBlank(message = "O título do filme é obrigatório.")
-    @Size(min = 2, max = 100, message = "O título deve ter entre 2 e 100 caracteres.")
+    @NotBlank(message = "O título é obrigatório")
     public String titulo;
 
-    @NotNull(message = "O ano de lançamento é obrigatório.")
-    @Min(1888)
-    @Max(2100)
-    public Integer anoLancamento;
-
-    @NotBlank
-    public String sinopse;
-
-    @ManyToOne
-    @JoinColumn(name = "diretor_id")
-    public Diretor diretor;
-
-    @ManyToMany
-    @JoinTable(
-            name = "filme_ator",
-            joinColumns = @JoinColumn(name = "filme_id"),
-            inverseJoinColumns = @JoinColumn(name = "ator_id")
-    )
-    public List<Ator> atores;
-
-    @Enumerated(EnumType.STRING)
+    @NotNull(message = "O gênero é obrigatório")
     public org.acme.Filme.Genero genero;
 
+    @Min(value = 1888, message = "O ano deve ser válido (ex: 1999)")
+    public int ano;
+
+    // Enumeração interna para o gênero do filme
     public enum Genero {
-        ACAO,
-        COMEDIA,
-        DRAMA,
-        FICCAO_CIENTIFICA,
-        TERROR,
-        ROMANCE
+        ACAO, DRAMA, COMEDIA, TERROR, FICCAO_CIENTIFICA, DOCUMENTARIO
     }
+
+    // Outros campos como diretor, atores, etc. seriam adicionados aqui
 }

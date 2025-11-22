@@ -10,6 +10,7 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
+        <!-- A versão da plataforma Quarkus está correta -->
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.version>3.25.2</quarkus.platform.version>
@@ -34,40 +35,45 @@
     </dependencyManagement>
 
     <dependencies>
-
-        <!-- REST (NÃO É RESTEASY!!) -->
+        <!-- ESSENCIAL: JAX-RS (Jakarta REST) e Serialização JSON -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest</artifactId>
+            <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
         </dependency>
 
+        <!-- ESSENCIAL: CDI (Contexts and Dependency Injection) / ARC -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-jackson</artifactId>
+            <artifactId>quarkus-arc</artifactId>
         </dependency>
 
-        <!-- Hibernate Validator -->
+        <!-- ESSENCIAL: MicroProfile Config para injeção de @ConfigProperty -->
+        <!-- O ARC geralmente já puxa isso, mas é bom garantir. -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-validator</artifactId>
+            <artifactId>quarkus-smallrye-config</artifactId>
         </dependency>
 
-        <!-- H2 Database -->
+        <!-- ESSENCIAL: Hibernate com Panache e Driver H2 para desenvolvimento/teste -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm-panache</artifactId>
+        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-h2</artifactId>
         </dependency>
 
-        <!-- Panache ORM -->
+        <!-- ESSENCIAL: Suporte a Transações -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm-panache</artifactId>
+            <artifactId>quarkus-narayana-jta</artifactId>
         </dependency>
 
-        <!-- DI - Arc -->
+        <!-- ESSENCIAL: Jakarta Bean Validation (para @NotBlank, @NotNull, etc.) -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-arc</artifactId>
+            <artifactId>quarkus-hibernate-validator</artifactId>
         </dependency>
 
         <!-- OpenAPI / Swagger -->
@@ -112,9 +118,14 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
 
         </plugins>
     </build>
-
 </project>

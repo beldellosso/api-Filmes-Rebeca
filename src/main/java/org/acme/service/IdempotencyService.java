@@ -2,54 +2,67 @@ package org.acme.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Response;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service to manage idempotency keys for POST operations.
- * NOTE: This is an in-memory implementation for demonstration.
- * A production application should use a persistent store (e.g., Redis).
+ * Serviço responsável por gerenciar chaves de Idempotência e armazenar respostas em cache.
+ * IMPORTANTE: Para produção, use um cache distribuído (Redis/Infinispan) e serialize a resposta.
+ * Aqui, usamos um ConcurrentHashMap para simular o cache em memória.
  */
 @ApplicationScoped
 public class IdempotencyService {
 
-    // Simples cache em memória, tipado para Response (o que o Recurso salva)
+    // Simulação de cache em memória: String (Idempotency-Key) -> Response
     private final ConcurrentHashMap<String, Response> cache = new ConcurrentHashMap<>();
 
     /**
-     * Checks if the response for the given idempotency key exists in the cache.
-     * @param key The idempotency key.
-     * @return true if the key is present.
-     */
-    public boolean exists(String key) {
-        return cache.containsKey(key);
-    }
-
-    /**
-     * Saves the response associated with the given idempotency key.
-     * @param key The idempotency key (from HeaderParam).
-     * @param response The Response object to be cached.
-     */
-    public void save(String key, Response response) {
-        // Usa computeIfAbsent para garantir que o save ocorra atomicamente
-        // Nota: Response não é ideal para caching em memória, mas funciona para demonstração.
-        cache.put(key, response);
-    }
-
-    /**
-     * Loads a previously cached response based on the idempotency key.
-     * @param key The idempotency key.
-     * @return The cached Response object, or null if not found.
+     * Tenta carregar uma resposta cacheada associada à chave de idempotência.
+     *
+     * @param key A chave de idempotência do header.
+     * @return A Response cacheada, ou null se não for encontrada.
      */
     public Response load(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        // Retorna a resposta se a chave existir no cache
         return cache.get(key);
     }
 
     /**
-     * Removes an idempotency key from the cache. Usado em caso de falha de processamento
-     * para permitir que o cliente tente novamente.
-     * @param key The idempotency key.
+     * Salva a resposta de sucesso no cache, associando-a à chave.
+     *
+     * @param key A chave de idempotência.
+     * @param response A Response HTTP final (normalmente 201 Created).
+     */
+    public void save(String key, Response response) {
+        if (key != null && !key.isBlank() && response != null) {
+            // Clona a Response para garantir que o objeto em cache não seja alterado
+            // e preserva os metadados como headers.
+            Response cachedResponse = Response.fromResponse(response).build();
+            cache.put(key, cachedResponse);
+        }
+    }
+
+    /**
+     * Remove a chave do cache (usado em caso de falha para permitir uma nova tentativa).
+     *
+     * @param key A chave de idempotência.
      */
     public void remove(String key) {
-        cache.remove(key);
+        if (key != null && !key.isBlank()) {
+            cache.remove(key);
+        }
+    }
+
+    /**
+     * Verifica se a chave existe no cache. Usado pelo filtro.
+     *
+     * @param key A chave de idempotência.
+     * @return true se a chave existe e possui uma resposta, false caso contrário.
+     */
+    public boolean exists(String key) {
+        return key != null && !key.isBlank() && cache.containsKey(key);
     }
 }

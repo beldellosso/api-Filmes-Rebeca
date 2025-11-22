@@ -15,6 +15,13 @@ import org.acme.service.IdempotencyService;
 import java.net.URI;
 import java.util.List;
 
+/**
+ * Recurso JAX-RS (REST) para a entidade Filme.
+ *
+ * Aplica filtros de segurança:
+ * - @RateLimited: Aplica limite de requisições.
+ * - @ApiKeyProtected: Requer uma X-API-Key válida.
+ */
 @Path("/filmes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -28,51 +35,66 @@ public class FilmeResource {
     @Inject
     IdempotencyService idempotency;
 
+    /**
+     * Lista todos os filmes.
+     * GET /filmes
+     */
     @GET
     public List<Filme> listar() {
         return service.listar();
     }
 
-    // Método para busca dinâmica por parâmetros (QueryParam)
+    /**
+     * Busca filmes dinamicamente por parâmetros de consulta.
+     * GET /filmes/buscar?titulo=...&genero=...&ano=...
+     */
     @GET
     @Path("/buscar")
     public List<Filme> buscar(
             @QueryParam("titulo") String titulo,
             @QueryParam("genero") Filme.Genero genero,
-            @QueryParam("ano") Integer ano) {
-
-        return service.buscarCustom(titulo, genero, ano);
+            @QueryParam("ano") Integer ano
+    ) {
+        return service.buscar(titulo, genero, ano);
     }
 
+    /**
+     * Busca um filme por ID.
+     * GET /filmes/{id}
+     */
     @GET
     @Path("/{id}")
-    public Response buscar(@PathParam("id") Long id) {
-        Filme filme = service.buscar(id);
+    public Response buscarPorId(@PathParam("id") Long id) {
+        Filme filme = service.buscarPorId(id);
         if (filme != null) {
-            return Response.ok(filme).build();
+            return Response.ok(filme).build(); // 200 OK
         } else {
             return Response.status(Response.Status.NOT_FOUND).build(); // 404 Not Found
         }
     }
 
+    /**
+     * Cria um novo filme, implementando a lógica de idempotência.
+     * POST /filmes
+     * Requer o header "Idempotency-Key".
+     */
     @POST
-    @Idempotent // A anotação garante a checagem do cabeçalho no filtro
-    public Response criar(@Valid Filme f, @HeaderParam("Idempotency-Key") String key) {
-
-        // 1. VERIFICAÇÃO DE IDEMPOTÊNCIA: Tenta carregar a resposta salva
-        Response cachedResponse = idempotency.load(key);
-        if (cachedResponse != null) {
-            // Se existir, retorna a resposta salva (201 Created)
-            return Response.fromResponse(cachedResponse).build();
-        }
-
-        Filme novo;
+    @Idempotent // Marca para o filtro garantir o header, e para a lógica de cache aqui.
+    public Response criar(@HeaderParam("Idempotency-Key") String key, @Valid Filme f) {
         Response resposta;
 
-        try {
-            // 2. Execução da lógica: Cria o filme
-            novo = service.criar(f);
+        // 1. Checa o cache de idempotência
+        Response savedResponse = idempotency.load(key);
+        if (savedResponse != null) {
+            // Se existir, retorna a resposta cacheada (status 201 ou 500 anterior)
+            return savedResponse;
+        }
 
+        try {
+            // 2. Processa a requisição (se não estiver em cache)
+            Filme novo = service.criar(f);
+
+            // Cria a resposta de SUCESSO (201 Created)
             resposta = Response
                     .created(URI.create("/filmes/" + novo.id))
                     .entity(novo)
@@ -86,13 +108,17 @@ public class FilmeResource {
             if (key != null && !key.isBlank()) {
                 idempotency.remove(key);
             }
-            // Lança exceção para ser mapeada para 500
+            // Lança exceção para ser mapeada para 500 pela GlobalExceptionHandler
             throw new WebApplicationException("Erro ao criar filme: " + e.getMessage(), Response.Status.INTERNAL_SERVER_ERROR);
         }
 
         return resposta;
     }
 
+    /**
+     * Atualiza um filme existente por ID.
+     * PUT /filmes/{id}
+     */
     @PUT
     @Path("/{id}")
     public Response atualizar(@PathParam("id") Long id, @Valid Filme f) {
@@ -104,6 +130,10 @@ public class FilmeResource {
         }
     }
 
+    /**
+     * Deleta um filme por ID.
+     * DELETE /filmes/{id}
+     */
     @DELETE
     @Path("/{id}")
     public Response deletar(@PathParam("id") Long id) {

@@ -1,16 +1,21 @@
-package org.acme.filter; // PACOTE A CORRIGIR
+package org.acme.filter;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerRequestFilter; // <-- ESTE É O IMPORT CHAVE
 import jakarta.ws.rs.ext.Provider;
 import jakarta.ws.rs.core.Response;
+import jakarta.annotation.Priority;
 import org.acme.service.IdempotencyService;
-import jakarta.annotation.Priority; // Adicionado para prioridade
 
+/**
+ * Filtro que garante que o header 'Idempotency-Key' esteja presente em requisições POST
+ * nos endpoints marcados com @Idempotent.
+ * NOTA: A checagem do cache é feita no FilmeResource.
+ */
 @Provider
 @Idempotent
-@Priority(50) // Prioridade deve ser definida para controlar a ordem
+@Priority(50)
 public class Idempotencyfilter implements ContainerRequestFilter {
 
     @Inject
@@ -20,35 +25,21 @@ public class Idempotencyfilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext ctx) {
 
         // Aplica SOMENTE para POST
-        if (!ctx.getMethod().equalsIgnoreCase("POST"))
+        if (!ctx.getMethod().equalsIgnoreCase("POST")) {
             return;
+        }
 
         String key = ctx.getHeaderString("Idempotency-Key");
 
+        // 1. Checa se a chave está presente
         if (key == null || key.isBlank()) {
-            ctx.abortWith(Response.status(400)
-                    .entity("Header 'Idempotency-Key' é obrigatório.")
+            ctx.abortWith(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Header 'Idempotency-Key' é obrigatório para esta operação.")
                     .build());
             return;
         }
 
-        if (idempotencyService.exists(key)) {
-            // PROBLEMA: O FILTRO NÃO DEVE ABORTAR AQUI.
-            // O recurso é quem deve verificar a existência e retornar a resposta CACHEADA.
-            // O recurso (FilmeResource) contém a lógica:
-            // 1. Load key
-            // 2. Process request
-            // 3. Save key (se sucesso)
-            // A lógica de idempotência não é completa em apenas um Request Filter.
-
-            // No seu código atual, o recurso já faz a checagem:
-            // FilmeResource:
-            // Response savedResponse = idempotency.load(key);
-            // if (savedResponse != null) { return savedResponse; }
-
-            // Portanto, o filtro precisa apenas garantir que a chave exista no header,
-            // mas não deve abortar aqui, ou a lógica de cache no Resource ficará redundante
-            // e ineficaz, e a resposta que o filtro aborta não terá o corpo correto do recurso criado.
-        }
+        // Não precisa checar se a chave existe no cache aqui, pois o Resource já faz.
+        // O filtro apenas garante que a chave foi fornecida.
     }
 }

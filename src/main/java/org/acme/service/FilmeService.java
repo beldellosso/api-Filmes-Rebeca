@@ -1,100 +1,85 @@
 package org.acme.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.transaction.Transactional;
-import org.acme.Filme; // Import corrigido para o pacote correto
-import org.acme.Filme.Genero;
+import jakarta.transaction.Transactional; // Importação chave para métodos de escrita
+import org.acme.Filme;
+import org.acme.Filme.Genero; // Importação explícita do Genero
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Service class responsible for handling business logic related to Filme entity
- * using Panache internally.
+ * Serviço responsável por encapsular a lógica de persistência e busca para a entidade Filme.
+ * Utiliza o Panache (Quarkus) para simplificar as operações de banco de dados.
  */
 @ApplicationScoped
 public class FilmeService {
 
-    /**
-     * Lists all films in the database.
-     * @return A list of all Filme objects.
-     */
     public List<Filme> listar() {
         return Filme.listAll();
     }
 
-    /**
-     * Retrieves a film by its ID.
-     * @param id The ID of the film to retrieve.
-     * @return The found Filme object, or null if not found.
-     */
-    public Filme buscar(Long id) {
+    public Filme buscarPorId(Long id) {
         return Filme.findById(id);
     }
 
-    /**
-     * Executes the custom search logic based on title, genre, or year.
-     * @param titulo Title filter (partial match).
-     * @param genero Genre filter (exact match).
-     * @param ano Year filter (exact match).
-     * @return A list of matching Filme objects.
-     */
-    public List<Filme> buscarCustom(String titulo, Genero genero, Integer ano) {
-        if (titulo != null && !titulo.isBlank()) {
-            return Filme.list("titulo like ?1", "%" + titulo + "%");
-        }
-        if (genero != null) {
-            return Filme.list("genero", genero);
-        }
-        if (ano != null) {
-            return Filme.list("anoLancamento", ano);
-        }
-        return Filme.listAll();
-    }
-
-
-    /**
-     * Creates a new film in the database.
-     * @param filme The Filme object to persist.
-     * @return The persisted Filme object.
-     */
-    @Transactional // ESSENCIAL para persistir no banco de dados
+    @Transactional // Garante que a operação de escrita rode em um contexto transacional
     public Filme criar(Filme filme) {
         filme.persist();
         return filme;
     }
 
-    /**
-     * Updates an existing film.
-     * @param id The ID of the film to update.
-     * @param novosDados The Filme object containing the new data.
-     * @return The updated Filme object, or null if not found.
-     */
-    @Transactional // ESSENCIAL para realizar o update
-    public Filme atualizar(Long id, Filme novosDados) {
-        Filme filme = Filme.findById(id);
-
-        // CORRIGIDO: Garante que o filme existe antes de atualizar
-        if (filme == null) {
+    @Transactional // Garante que a operação de escrita rode em um contexto transacional
+    public Filme atualizar(Long id, Filme dados) {
+        Filme entity = Filme.findById(id);
+        if (entity == null) {
             return null;
         }
 
-        // Atualiza os campos do filme existente
-        filme.titulo = novosDados.titulo;
-        filme.anoLancamento = novosDados.anoLancamento;
-        filme.sinopse = novosDados.sinopse;
-        filme.genero = novosDados.genero;
-        filme.diretor = novosDados.diretor;
-        filme.atores = novosDados.atores;
+        entity.titulo = dados.titulo;
+        entity.genero = dados.genero;
+        entity.anoLancamento = dados.anoLancamento;
+        entity.diretor = dados.diretor;
+        entity.elenco = dados.elenco;
 
-        return filme; // Não precisa de 'persist()' explícito, pois é uma entidade gerenciada dentro da transação.
+        // Panache se encarrega de persistir as mudanças no fim da transação
+        return entity;
+    }
+
+    @Transactional // Garante que a operação de escrita rode em um contexto transacional
+    public boolean deletar(Long id) {
+        return Filme.deleteById(id);
     }
 
     /**
-     * Deletes a film by its ID.
-     * @param id The ID of the film to delete.
-     * @return true if deleted, false if not found. (Necessário para o Resource checar 404)
+     * Implementação do método de busca dinâmica usando Panache.find().
+     * Filtra a lista de filmes com base nos parâmetros não nulos.
+     * * @param titulo Filtra por parte do título (case-insensitive)
+     * @param genero Filtra pelo gênero do filme (exato)
+     * @param anoLancamento Filtra pelo ano de lançamento (exato)
+     * @return Lista de filmes que correspondem aos critérios
      */
-    @Transactional // ESSENCIAL para realizar o delete
-    public boolean deletar(Long id) {
-        return Filme.deleteById(id);
+    public List<Filme> buscar(String titulo, Genero genero, Integer anoLancamento) {
+
+        StringBuilder query = new StringBuilder("1=1"); // Começa com uma condição sempre verdadeira
+        Map<String, Object> params = new HashMap<>();
+
+        if (titulo != null && !titulo.isBlank()) {
+            // Usa LIKE para busca parcial e UPPER para case-insensitive no título
+            query.append(" AND UPPER(titulo) LIKE CONCAT('%', UPPER(:titulo), '%')");
+            params.put("titulo", titulo);
+        }
+        if (genero != null) {
+            query.append(" AND genero = :genero");
+            // Panache lida perfeitamente com a tipagem de ENUM
+            params.put("genero", genero);
+        }
+        if (anoLancamento != null) {
+            query.append(" AND anoLancamento = :anoLancamento");
+            params.put("anoLancamento", anoLancamento);
+        }
+
+        // Executa a query usando Panache.find()
+        return Filme.find(query.toString(), params).list();
     }
 }

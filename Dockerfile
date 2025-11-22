@@ -10,34 +10,38 @@ WORKDIR /app
 # Copia apenas o pom.xml primeiro para usar o cache de dependências do Maven
 COPY pom.xml .
 
+# ====================================================================
+# PASSO DE CORREÇÃO CRÍTICO (Resolve o erro Jandex no Build)
+# Remove os caches de Jandex e Quarkus que estão corrompidos, forçando
+# o Maven a baixá-los e processá-los corretamente no passo seguinte.
+# ====================================================================
+RUN rm -rf /root/.m2/repository/io/quarkus \
+    && rm -rf /root/.m2/repository/org/jboss/jandex
+
 # Baixa as dependências. O || true garante que o build não falhe se o go-offline retornar erro (comum em caches vazios)
 RUN mvn dependency:go-offline -B || true
 
 # Copia todo o código fonte
 COPY src ./src
 
-# Compila a aplicação. Cria um uber-jar (-runner.jar)
+# Compila a aplicação. Cria um uber-jar (-runner.jar).
+# Este passo deve funcionar agora que os caches foram limpos.
 RUN mvn clean package -DskipTests -Dquarkus.package.jar.type=uber-jar
 
 # ------------------------------------------------------------------------
 # 2. STAGE DE RUNTIME (EXECUÇÃO)
 # Usa uma imagem JRE 21 mais leve para executar a aplicação
 # ------------------------------------------------------------------------
-# A imagem oficial do Eclipse Temurin 21 JRE é uma alternativa mais leve.
-# Se precisar usar a UBI8, mude para openjdk-21-runtime:
-# FROM registry.access.redhat.com/ubi8/openjdk-21-runtime
 FROM eclipse-temurin:21-jre-alpine
 
 # Variáveis de ambiente
 ENV LANGUAGE='en_US:en'
-# Ajuste o host para 0.0.0.0, conforme necessário
 ENV JAVA_OPTS="-Xmx512m -Xms256m -Dquarkus.http.host=0.0.0.0"
 
 # Define o diretório de trabalho
 WORKDIR /deployments/
 
 # Copia o JAR compilado do estágio de build
-# O usuário padrão do Alpine é root, mas a UBI8 usa 185. Usaremos o chown para compatibilidade.
 COPY --from=build --chown=1000:1000 /app/target/*-runner.jar ./quarkus-run.jar
 
 # Expõe a porta padrão do Quarkus

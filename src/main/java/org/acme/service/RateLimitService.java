@@ -1,105 +1,120 @@
 package org.acme.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import java.time.Instant;
-import java.util.Map;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
- * Service to manage Rate Limiting (limite de taxa de requisições) em memória.
- * Utiliza o algoritmo Fixed Window Counter (Janela Fixa).
+ * Serviço responsável por implementar a lógica de limite de taxa
+ * usando o algoritmo de janela deslizante (Sliding Window Log).
  *
- * NOTA: Em produção, seria necessário usar uma solução distribuída (e.g., Redis)
- * para sincronizar o estado em múltiplas instâncias da API.
+ * NOTA: O uso de ConcurrentHashMap é adequado para uma única instância do Quarkus.
+ * Em um ambiente distribuído (múltiplas instâncias), uma solução de cache distribuído
+ * como Redis ou Infinispan seria necessária para sincronizar o estado.
  */
 @ApplicationScoped
-public class RateLimitService { // Nome da classe corrigido
+public class RateLimitService {
 
-    // Cache para armazenar o estado de limite de taxa por API Key (ou identificador de cliente)
-    private final Map<String, RequestState> rateLimitCache = new ConcurrentHashMap<>();
+    // Mapa thread-safe: Chave da API -> Lista de Timestamps das requisições (em milissegundos)
+    private final ConcurrentHashMap<String, List<Long>> requestMap = new ConcurrentHashMap<>();
 
-    // Injeta configurações do application.properties
-    @Inject
-    @ConfigProperty(name = "api.ratelimit.limit", defaultValue = "20")
-    int requestLimit;
+    // O valor configurado é uma variável de instância (não estática)
+    @ConfigProperty(name = "api.ratelimit.limit", defaultValue = "10")
+    int maxRequests;
 
-    // A janela de tempo é configurada em segundos.
-    @Inject
+    // O valor configurado é uma variável de instância (não estática)
     @ConfigProperty(name = "api.ratelimit.window.seconds", defaultValue = "60")
     long windowSeconds;
 
-
     /**
-     * Tenta processar uma requisição para a chave de API fornecida.
-     * @param clientIdentifier O identificador do cliente (e.g., chave de API ou IP).
-     * @return true se a requisição for permitida, false se o limite for excedido.
+     * Tenta permitir uma nova requisição para uma dada chave de API.
+     * @param apiKey A chave de identificação da API.
+     * @return Um objeto RateLimitResponse indicando se a requisição foi permitida e o status.
      */
-    public boolean allowRequest(String clientIdentifier) {
-        RequestState state = rateLimitCache.computeIfAbsent(clientIdentifier, k -> new RequestState());
-        Instant now = Instant.now();
+    public RateLimitResponse allowRequest(String apiKey) {
+        long currentTime = System.currentTimeMillis();
+        long windowStart = currentTime - TimeUnit.SECONDS.toMillis(windowSeconds);
 
-        // Define o início da janela de tempo atual
-        Instant windowStart = now.minusSeconds(windowSeconds);
+        // Garante que existe uma lista para a chave, ou cria uma nova se for a primeira vez.
+        // O uso de CopyOnWriteArrayList é para facilitar a filtragem/modificação
+        // e garantir a segurança de threads, embora seja menos eficiente para listas grandes.
+        List<Long> timestamps = requestMap.computeIfAbsent(apiKey, k -> new CopyOnWriteArrayList<>());
 
-        // Se a última requisição foi feita fora da janela atual, reinicia a contagem
-        if (state.lastRequestTime.isBefore(windowStart)) {
-            state.requestCount = 0;
-            state.lastRequestTime = now;
-        }
+        // Sincroniza o acesso à lista para garantir atomicidade nas operações de limpeza e adição
+        synchronized (timestamps) {
+            // 1. Limpa os timestamps expirados (fora da janela deslizante)
+            timestamps.removeIf(timestamp -> timestamp < windowStart);
 
-        // Incrementa e verifica se excedeu o limite
-        if (state.requestCount < requestLimit) {
-            state.requestCount++;
-            return true;
-        } else {
-            // Limite excedido
-            return false;
+            // 2. Checa o limite
+            if (timestamps.size() < maxRequests) {
+                // 3. Permite a requisição: Adiciona o timestamp atual e calcula o restante
+                timestamps.add(currentTime);
+                int remaining = maxRequests - timestamps.size();
+
+                return new RateLimitResponse(true, remaining, 0);
+
+            } else {
+                // 4. Bloqueia a requisição: Calcula o tempo de espera (Retry-After)
+                // O timestamp mais antigo (primeira requisição da janela) é o que precisa expirar.
+                long oldestTimestamp = timestamps.get(0);
+                long timeToWaitMillis = (oldestTimestamp + TimeUnit.SECONDS.toMillis(windowSeconds)) - currentTime;
+
+                // Garante que o tempo de espera seja pelo menos 1 segundo
+                long timeToWaitSeconds = Math.max(1, TimeUnit.MILLISECONDS.toSeconds(timeToWaitMillis));
+
+                // A requisição não é permitida, 0 restante, tempo de espera calculado.
+                return new RateLimitResponse(false, 0, timeToWaitSeconds);
+            }
         }
     }
 
     /**
-     * Retorna o número total de requisições permitidas na janela.
-     * @return O limite de requisições.
+     * Getter público para a propriedade de configuração maxRequests.
+     * Necessário para o RateLimitFilter que define o header X-RateLimit-Limit.
      */
-    public int getLimit() {
-        return requestLimit;
+    public int getMaxRequests() {
+        return maxRequests;
     }
 
     /**
-     * Retorna o número de requisições restantes na janela atual.
-     * @param clientIdentifier O identificador do cliente.
-     * @return O número de requisições restantes.
+     * Getter público para a propriedade de configuração windowSeconds.
+     * Necessário se você quiser expor a janela de tempo em algum lugar (e para consistência).
      */
-    public int remainingRequests(String clientIdentifier) {
-        RequestState state = rateLimitCache.get(clientIdentifier);
-        if (state == null) {
-            return requestLimit; // Se não houver estado, assume o limite total
-        }
-
-        Instant now = Instant.now();
-        Instant windowStart = now.minusSeconds(windowSeconds);
-
-        // Se a janela resetou, retorna o limite total
-        if (state.lastRequestTime.isBefore(windowStart)) {
-            return requestLimit;
-        }
-
-        return requestLimit - state.requestCount;
+    public long getWindowSeconds() {
+        return windowSeconds;
     }
 
-    /**
-     * Classe interna para armazenar o estado da requisição por chave de API.
-     */
-    private static class RequestState {
-        int requestCount;
-        Instant lastRequestTime;
 
-        public RequestState() {
-            this.requestCount = 0;
-            // Inicializa com um tempo antigo para garantir que a primeira requisição seja contada.
-            this.lastRequestTime = Instant.EPOCH;
+    /**
+     * Classe interna estática para empacotar a resposta do limite de taxa.
+     */
+    public static class RateLimitResponse {
+        private final boolean allowed;
+        private final int remaining;
+        private final long waitTimeSeconds; // Tempo até o próximo slot ser liberado
+
+        public RateLimitResponse(boolean allowed, int remaining, long waitTimeSeconds) {
+            this.allowed = allowed;
+            this.remaining = remaining;
+            this.waitTimeSeconds = waitTimeSeconds;
+        }
+
+        public boolean isAllowed() {
+            return allowed;
+        }
+
+        public int getRemaining() {
+            return remaining;
+        }
+
+        public long getWaitTimeSeconds() {
+            return waitTimeSeconds;
         }
     }
 }
