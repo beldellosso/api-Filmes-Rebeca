@@ -1,48 +1,58 @@
-/* SIMPLE.CSS – estilo básico, limpo e minimalista */
+/* SIMPLE.CSS – estilo básico, limpo e minimalista (Ajustado para o Swagger UI) */
 
-body {
+/* Aplica estilos ao corpo da interface do Swagger. */
+.swagger-ui {
     font-family: Arial, Helvetica, sans-serif;
-    background: #f5f7fa;
-    color: #222;
+    /* Use !important para forçar a sobrescrita do fundo e cor de texto */
+    background: #f5f7fa !important;
+    color: #222 !important;
     margin: 0;
     padding: 20px;
 }
 
 /* Container central */
-.container {
+/* Deve ser específico para o container do Swagger */
+.swagger-ui .container {
     max-width: 900px;
     margin: 0 auto;
 }
 
-/* Títulos */
-h1, h2, h3 {
+/* Títulos (h1, h2, h3) */
+.swagger-ui h1,
+.swagger-ui h2,
+.swagger-ui h3 {
     font-weight: 600;
-    color: #222;
+    color: #222 !important;
     margin-bottom: 10px;
 }
 
 /* Textos */
-p {
+.swagger-ui p {
     margin-bottom: 12px;
     line-height: 1.6;
 }
 
 /* Botões */
-button, .btn {
+.swagger-ui button,
+.swagger-ui .btn {
     padding: 10px 16px;
-    background: #3b82f6;
+    /* !important garante que sobrescreve os botões padrão GET/POST/PUT */
+    background: #3b82f6 !important;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    color: white;
+    color: white !important;
     font-size: 14px;
 }
-button:hover, .btn:hover {
-    background: #2563eb;
+.swagger-ui button:hover,
+.swagger-ui .btn:hover {
+    background: #2563eb !important;
 }
 
 /* Inputs */
-input, select, textarea {
+.swagger-ui input,
+.swagger-ui select,
+.swagger-ui textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid #d1d5db;
@@ -51,8 +61,11 @@ input, select, textarea {
     font-size: 14px;
 }
 
-/* Cards */
-.card {
+/* Cards (Para dar estilo aos painéis de recursos) */
+/* Isso tenta estilizar os containers de definição de recurso */
+.swagger-ui .opblock-tag-section,
+.swagger-ui .model-box,
+.swagger-ui .parameters-container {
     background: white;
     padding: 16px;
     border-radius: 8px;
@@ -61,26 +74,27 @@ input, select, textarea {
 }
 
 /* Tabelas */
-table {
+.swagger-ui table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
 
-th, td {
+.swagger-ui th,
+.swagger-ui td {
     text-align: left;
     padding: 12px;
     border-bottom: 1px solid #e5e7eb;
 }
 
-th {
+.swagger-ui th {
     background: #f1f5f9;
     font-weight: 600;
 }
 
 /* Responsivo */
 @media (max-width: 600px) {
-    body {
+    .swagger-ui {
         padding: 10px;
     }
 }
