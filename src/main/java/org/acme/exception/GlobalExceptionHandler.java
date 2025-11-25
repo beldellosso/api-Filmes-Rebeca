@@ -35,7 +35,9 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
                     .build();
         }
 
-
+        // ------------------------------
+        // 1. Bean Validation Errors
+        //
         if (e instanceof WebApplicationException wae) {
 
             int status = wae.getResponse().getStatus();

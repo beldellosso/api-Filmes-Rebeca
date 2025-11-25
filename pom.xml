@@ -172,6 +172,12 @@
 
         </dependency>
 
+        <!-- Para Maven -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-fault-tolerance</artifactId>
+        </dependency>
+
     </dependencies>
 
 
