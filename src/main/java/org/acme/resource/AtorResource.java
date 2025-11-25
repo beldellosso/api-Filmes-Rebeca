@@ -23,17 +23,10 @@ import java.util.Map;
 
 public class AtorResource {
 
+
     @GET
     @RateLimit(value = 5, window=60, windowUnit = ChronoUnit.SECONDS)
     @Fallback(fallbackMethod = "fallbackListaAtor")
-    @Parameter(
-
-            name = "X-API-Key",
-            in = ParameterIn.HEADER,
-            description = "Chave da API para autenticação"
-
-    )
-
     public Response listar() {
         return Response.ok(Ator.listAll()).build();
     }
@@ -43,13 +36,6 @@ public class AtorResource {
 
     @GET
     @Path("/{id}")
-    @Parameter(
-            name = "X-API-Key",
-            in = ParameterIn.HEADER,
-            description = "Chave da API para autenticação"
-
-    )
-
     public Response buscarPorId(@PathParam("id") Long id) {
         Ator ator = Ator.findById(id);
         if (ator != null) {
@@ -64,12 +50,6 @@ public class AtorResource {
     @POST
     @Transactional
     @Idempotent
-    @Parameter(
-            name = "X-API-Key",
-            in = ParameterIn.HEADER,
-            description = "Chave da API para autenticação"
-    )
-
     @Parameter(
             name = "X-Idempotency-Key",
             description = "Chave de idempotência",
@@ -94,11 +74,6 @@ public class AtorResource {
             schema = @Schema(type = SchemaType.STRING)
     )
 
-    @Parameter(
-            name = "X-API-Key",
-            in = ParameterIn.HEADER,
-            description = "Chave da API para autenticação"
-    )
 
     public Response atualizar(@PathParam("id") Long id, Ator a) {
         Ator atorAtualizado = Ator.findById(id);
