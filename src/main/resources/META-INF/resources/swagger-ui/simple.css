@@ -1,20 +1,18 @@
-/* SIMPLE.CSS – estilo básico, limpo e minimalista (Ajustado para o Swagger UI) */
+/* SIMPLE.CSS – Estilos Forçados para Sobrescrever o Swagger UI */
 
-/* Aplica estilos ao corpo da interface do Swagger. */
+/* Aplica estilos ao corpo da interface, usando a classe raiz do Swagger. */
 .swagger-ui {
-    font-family: Arial, Helvetica, sans-serif;
-    /* Use !important para forçar a sobrescrita do fundo e cor de texto */
-    background: #f5f7fa !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    background: #f5f7fa !important; /* Fundo customizado (o mais importante para notar a mudança) */
     color: #222 !important;
     margin: 0;
     padding: 20px;
 }
 
 /* Container central */
-/* Deve ser específico para o container do Swagger */
 .swagger-ui .container {
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 900px !important;
+    margin: 0 auto !important;
 }
 
 /* Títulos (h1, h2, h3) */
@@ -32,13 +30,12 @@
     line-height: 1.6;
 }
 
-/* Botões */
+/* Botões (POST/PUT/GET/DELETE) */
 .swagger-ui button,
 .swagger-ui .btn {
     padding: 10px 16px;
-    /* !important garante que sobrescreve os botões padrão GET/POST/PUT */
-    background: #3b82f6 !important;
-    border: none;
+    background: #3b82f6 !important; /* Força a cor customizada */
+    border: none !important;
     border-radius: 6px;
     cursor: pointer;
     color: white !important;
@@ -49,20 +46,7 @@
     background: #2563eb !important;
 }
 
-/* Inputs */
-.swagger-ui input,
-.swagger-ui select,
-.swagger-ui textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    margin-bottom: 12px;
-    font-size: 14px;
-}
-
 /* Cards (Para dar estilo aos painéis de recursos) */
-/* Isso tenta estilizar os containers de definição de recurso */
 .swagger-ui .opblock-tag-section,
 .swagger-ui .model-box,
 .swagger-ui .parameters-container {
