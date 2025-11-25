@@ -8,7 +8,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.validation.Valid;
 import org.acme.Filme;
-import org.acme.filter.Idempotent; // Usando o import local do seu modelo
+import org.acme.filter.Idempotent;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.openapi.annotations.enums.ParameterIn;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -17,13 +17,11 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 
 import java.net.URI;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
 
 @Path("/v1/filmes") // Atualizado para V1
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-// @ApiKeyProtected REMOVIDO
 public class FilmeResource {
 
     @GET
@@ -38,12 +36,10 @@ public class FilmeResource {
         return Response.ok(Filme.listAll()).build();
     }
 
-    // ... (Métodos buscar e buscarPorId, se forem idênticos ao AtorResource, precisam do @Parameter X-API-Key)
-    // ... (Aqui assumimos que você os corrigiu para incluir X-API-Key)
 
     @POST
     @Idempotent
-    @Transactional // ADICIONADO
+    @Transactional
     @Parameter(
             name = "X-Idempotency-Key", // AGORA COMPLETO
             description = "Chave de idempotência",
@@ -57,7 +53,7 @@ public class FilmeResource {
     )
     public Response criar(@Valid Filme f) {
         f.persist();
-        // ... (resto do método)
+
         URI location = UriBuilder.fromResource(FilmeResource.class).path("/{id}").resolveTemplate("id", f.id).build();
         return Response.created(location).entity(f).build();
     }
@@ -65,7 +61,7 @@ public class FilmeResource {
     @PUT
     @Path("/{id}")
     @Idempotent
-    @Transactional // ADICIONADO
+    @Transactional
     @Parameter(
             name = "X-Idempotency-Key", // AGORA COMPLETO
             description = "Chave de idempotência",

@@ -14,7 +14,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
 
 @Path("/v1/diretores") // Atualizado para V1
