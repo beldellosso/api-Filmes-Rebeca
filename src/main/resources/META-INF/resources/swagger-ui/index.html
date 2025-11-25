@@ -4,13 +4,88 @@
     <meta charset="UTF-8">
     <title>Swagger UI</title>
 
-    <link rel="stylesheet" type="text/css" href="/swagger-ui/simple.css">
-
-    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
-
     <style>
+        .swagger-ui {
+            font-family: Arial, Helvetica, sans-serif !important;
+            background: #f5f7fa !important; /* Fundo customizado (o mais importante para notar a mudança) */
+            color: #222 !important;
+            margin: 0;
+            padding: 20px;
+        }
 
+        /* Container central */
+        .swagger-ui .container {
+            max-width: 900px !important;
+            margin: 0 auto !important;
+        }
+
+        /* Títulos (h1, h2, h3) */
+        .swagger-ui h1,
+        .swagger-ui h2,
+        .swagger-ui h3 {
+            font-weight: 600;
+            color: #222 !important;
+            margin-bottom: 10px;
+        }
+
+        /* Textos */
+        .swagger-ui p {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        /* Botões (POST/PUT/GET/DELETE) */
+        .swagger-ui button,
+        .swagger-ui .btn {
+            padding: 10px 16px;
+            background: #3b82f6 !important; /* Força a cor customizada */
+            border: none !important;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white !important;
+            font-size: 14px;
+        }
+        .swagger-ui button:hover,
+        .swagger-ui .btn:hover {
+            background: #2563eb !important;
+        }
+
+        /* Cards (Para dar estilo aos painéis de recursos) */
+        .swagger-ui .opblock-tag-section,
+        .swagger-ui .model-box,
+        .swagger-ui .parameters-container {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        /* Tabelas */
+        .swagger-ui table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .swagger-ui th,
+        .swagger-ui td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .swagger-ui th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        /* Responsivo */
+        @media (max-width: 600px) {
+            .swagger-ui {
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
