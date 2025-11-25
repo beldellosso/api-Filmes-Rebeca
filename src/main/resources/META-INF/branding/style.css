@@ -1,0 +1,157 @@
+/* ------------------------------------------------------------------ */
+
+/* Estilos Base e Branding (CSS Embutido) */
+
+/* ------------------------------------------------------------------ */
+
+
+
+/* Aplica estilos ao corpo da interface, usando a classe raiz do Swagger. */
+
+.swagger-ui {
+
+    font-family: Arial, Helvetica, sans-serif !important;
+
+    background: #f5f7fa !important; /* Fundo customizado */
+
+    color: #222 !important;
+
+    margin: 0;
+
+    padding: 20px;
+
+}
+
+
+
+/* Container central */
+
+.swagger-ui .container {
+
+    max-width: 900px !important;
+
+    margin: 0 auto !important;
+
+}
+
+
+
+/* Títulos */
+
+.swagger-ui h1, .swagger-ui h2, .swagger-ui h3 {
+
+    font-weight: 600;
+
+    color: #222 !important;
+
+    margin-bottom: 10px;
+
+}
+
+
+
+/* Botões */
+
+.swagger-ui button, .swagger-ui .btn {
+
+    padding: 10px 16px;
+
+    background: #3b82f6 !important; /* Força a cor customizada */
+
+    border: none !important;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    color: white !important;
+
+    font-size: 14px;
+
+}
+
+.swagger-ui button:hover, .swagger-ui .btn:hover {
+
+    background: #2563eb !important;
+
+}
+
+
+
+/* Cards */
+
+.swagger-ui .opblock-tag-section, .swagger-ui .model-box, .swagger-ui .parameters-container {
+
+    background: white;
+
+    padding: 16px;
+
+    border-radius: 8px;
+
+    border: 1px solid #e2e8f0;
+
+    margin-bottom: 16px;
+
+}
+
+
+
+/* Tabelas */
+
+.swagger-ui table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    margin-top: 10px;
+
+}
+
+
+
+/* ------------------------------------------------------------------ */
+
+/* Estilos para o Topbar (Cabeçalho) - Cor e ocultar ícone padrão */
+
+/* ------------------------------------------------------------------ */
+
+
+
+/* Estiliza o contêiner do topo */
+
+.swagger-ui .topbar {
+
+    background-color: #3b82f6 !important; /* Cor de fundo do cabeçalho */
+
+    padding: 10px 20px !important;
+
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+}
+
+
+
+/* Esconde o logo padrão do Swagger UI (o ícone de raios) */
+
+.swagger-ui .topbar-wrapper .link img {
+
+    display: none !important;
+
+}
+
+
+
+/* Garante que o texto do branding apareça no lugar do logo */
+
+.swagger-ui .topbar .topbar-wrapper a.link {
+
+    font-size: 1.5em;
+
+    font-weight: bold;
+
+    color: white !important;
+
+    text-decoration: none;
+
+}
