@@ -14,7 +14,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Map;
 
 @Path("/v1/diretores") // Atualizado para V1
@@ -25,12 +24,22 @@ public class DiretorResource {
     @GET
     @RateLimit(value = 5, window=60, windowUnit = ChronoUnit.SECONDS)
     @Fallback(fallbackMethod = "fallbackListaDiretor")
+    @Parameter(
+            name = "X-API-Key",
+            in = ParameterIn.HEADER,
+            description = "Chave da API para autenticação"
+    )
     public Response listar() {
         return Response.ok(Diretor.listAll()).build();
     }
 
     @GET
     @Path("/{id}")
+    @Parameter(
+            name = "X-API-Key",
+            in = ParameterIn.HEADER,
+            description = "Chave da API para autenticação"
+    )
     public Response buscarPorId(@PathParam("id") Long id) {
         Diretor diretor = Diretor.findById(id);
         return diretor != null ? Response.ok(diretor).build() : Response.status(Response.Status.NOT_FOUND).build();
@@ -44,6 +53,11 @@ public class DiretorResource {
             description = "Chave de idempotência",
             in = ParameterIn.HEADER,
             schema = @Schema(type = SchemaType.STRING)
+    )
+    @Parameter(
+            name = "X-API-Key",
+            in = ParameterIn.HEADER,
+            description = "Chave da API para autenticação"
     )
     public Diretor criar(Diretor d) {
         d.persist();
@@ -60,6 +74,11 @@ public class DiretorResource {
             in = ParameterIn.HEADER,
             schema = @Schema(type = SchemaType.STRING)
     )
+    @Parameter(
+            name = "X-API-Key",
+            in = ParameterIn.HEADER,
+            description = "Chave da API para autenticação"
+    )
     public Response atualizar(@PathParam("id") Long id, Diretor d) {
         Diretor diretorAtualizado = Diretor.findById(id);
         if (diretorAtualizado != null) {
@@ -71,16 +90,20 @@ public class DiretorResource {
     }
 
     @DELETE
-    @Idempotent
+    @Idempotent // ADICIONADO: Idempotência para DELETE
     @Path("/{id}")
     @Transactional
     @Parameter(
-            name = "X-Idempotency-Key",
+            name = "X-Idempotency-Key", // ADICIONADO
             description = "Chave de idempotência",
             in = ParameterIn.HEADER,
             schema = @Schema(type = SchemaType.STRING)
     )
-
+    @Parameter(
+            name = "X-API-Key",
+            in = ParameterIn.HEADER,
+            description = "Chave da API para autenticação"
+    )
     public Response deletar(@PathParam("id") Long id) {
         boolean deletado = Diretor.deleteById(id);
         return deletado ? Response.status(Response.Status.NO_CONTENT).build() : Response.status(Response.Status.NOT_FOUND).build();
